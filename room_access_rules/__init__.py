@@ -16,6 +16,7 @@ import email.utils
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 
+import attr
 from synapse.api.constants import EventTypes, JoinRules, Membership, RoomCreationPreset
 from synapse.events import EventBase
 from synapse.module_api import ModuleApi, UserID
@@ -53,6 +54,12 @@ VALID_ACCESS_RULES = (
 RULES_WITH_RESTRICTED_POWER_LEVELS = (AccessRules.UNRESTRICTED,)
 
 
+@attr.s(frozen=True, auto_attribs=True)
+class RoomAccessRulesConfig:
+    id_server: str
+    domains_forbidden_when_restricted: List[str] = []
+
+
 class RoomAccessRules(object):
     """Implementation of the ThirdPartyEventRules module API that allows federation admins
     to define custom rules for specific events and actions.
@@ -81,15 +88,11 @@ class RoomAccessRules(object):
 
     def __init__(
         self,
-        config: Dict,
+        config: RoomAccessRulesConfig,
         module_api: ModuleApi,
     ):
-        self.id_server = config["id_server"]
+        self.config = config
         self.module_api = module_api
-
-        self.domains_forbidden_when_restricted = config.get(
-            "domains_forbidden_when_restricted", []
-        )
 
         self.module_api.register_third_party_rules_callbacks(
             check_event_allowed=self.check_event_allowed,
@@ -99,20 +102,22 @@ class RoomAccessRules(object):
         )
 
     @staticmethod
-    def parse_config(config: Dict) -> Dict:
+    def parse_config(config_dict: Dict) -> RoomAccessRulesConfig:
         """Parses and validates the options specified in the homeserver config.
 
         Args:
-            config: The config dict.
+            config_dict: The config dict.
 
         Returns:
-            The config dict.
+            The parsed config.
 
         Raises:
             ConfigError: If there was an issue with the provided module configuration.
         """
-        if "id_server" not in config:
+        if "id_server" not in config_dict:
             raise ConfigError("No IS for event rules RoomAccessRules")
+
+        config = RoomAccessRulesConfig(**config_dict)
 
         return config
 
@@ -226,6 +231,7 @@ class RoomAccessRules(object):
                     raise SynapseError(400, "Invalid power levels content")
 
                 custom_user_power_levels = event["content"]
+
         if custom_user_power_levels:
             # If the user is using their own power levels, but failed to provide an
             # expected key in the power levels content dictionary, fill it in from the
@@ -305,14 +311,14 @@ class RoomAccessRules(object):
 
         # Get the HS this address belongs to from the identity server.
         res = await self.module_api.http_client.get_json(
-            "https://%s/_matrix/identity/api/v1/info" % (self.id_server,),
+            "https://%s/_matrix/identity/api/v1/info" % (self.config.id_server,),
             {"medium": medium, "address": address},
         )
 
         # Look for a domain that's not forbidden from being invited.
         if not res.get("hs"):
             return False
-        if res.get("hs") in self.domains_forbidden_when_restricted:
+        if res.get("hs") in self.config.domains_forbidden_when_restricted:
             return False
 
         return True
@@ -507,7 +513,7 @@ class RoomAccessRules(object):
             return True
 
         invitee_domain = UserID.from_string(event.state_key).domain
-        return invitee_domain not in self.domains_forbidden_when_restricted
+        return invitee_domain not in self.config.domains_forbidden_when_restricted
 
     def _on_membership_or_invite_unrestricted(
         self, event: EventBase, state_events: StateMap[EventBase]
@@ -524,7 +530,7 @@ class RoomAccessRules(object):
         if event.type == EventTypes.Member and event.membership == Membership.JOIN:
             # Check if this user is from a forbidden server
             target_domain = UserID.from_string(event.state_key).domain
-            if target_domain in self.domains_forbidden_when_restricted:
+            if target_domain in self.config.domains_forbidden_when_restricted:
                 # If so, they'll need an invite to join this room. Check if one exists
                 if not self._user_is_invited_to_room(event.state_key, state_events):
                     return False
@@ -656,7 +662,7 @@ class RoomAccessRules(object):
             # Check the domain against the blacklist. If found, and the PL isn't 0, deny
             # the event.
             if (
-                server_name in self.domains_forbidden_when_restricted
+                server_name in self.config.domains_forbidden_when_restricted
                 and power_level != 0
             ):
                 return False
