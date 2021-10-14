@@ -1,1 +1,14 @@
-.idea
+.vscode
+.coverage
+__pycache__/
+*.pyc
+env/
+_trial_temp/
+*.db
+
+/.eggs/
+/.idea/
+/.tox/
+/build/
+/dist/
+/*.egg-info/
