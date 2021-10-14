@@ -18,7 +18,7 @@ import aiounittest
 
 from synapse.module_api.errors import SynapseError
 
-from room_access_rules import ACCESS_RULES_TYPE, AccessRules
+from room_access_rules import ACCESS_RULES_TYPE, AccessRules, EventTypes
 from tests import create_module, MockRequester
 
 
@@ -110,7 +110,7 @@ class RoomCreateTestCase(aiounittest.AsyncTestCase):
         with self.assertRaises(SynapseError):
             await self._create_room(
                 initial_state=[
-                    {"type": "m.room.power_levels", "content": pl_override_invite}
+                    {"type": EventTypes.PowerLevels, "content": pl_override_invite}
                 ],
             )
 
@@ -145,9 +145,9 @@ class RoomCreateTestCase(aiounittest.AsyncTestCase):
         del pl_override["invite"]
 
         config = await self._create_room(
-            initial_state=[{"type": "m.room.power_levels", "content": pl_override}],
+            initial_state=[{"type": EventTypes.PowerLevels, "content": pl_override}],
         )
-        self.assertEqual(config["initial_state"][1]["type"], "m.room.power_levels")
+        self.assertEqual(config["initial_state"][1]["type"], EventTypes.PowerLevels)
         self.assertEqual(
             config["initial_state"][1]["content"]["state_default"],
             100,
@@ -167,8 +167,8 @@ class RoomCreateTestCase(aiounittest.AsyncTestCase):
         initial_state: Optional[list] = None,
     ) -> Dict[str, Any]:
         config = {
-            'is_direct': direct,
-            'preset': 'trusted_private_chat',
+            "is_direct": direct,
+            "preset": "trusted_private_chat",
             "initial_state": [
                 {
                     "type": ACCESS_RULES_TYPE,
