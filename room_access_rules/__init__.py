@@ -92,24 +92,6 @@ class RoomAccessRules(object):
     to define custom rules for specific events and actions.
     Implements the custom behaviour for the "im.vector.room.access_rules" state event.
 
-    Takes a config in the format:
-
-    third_party_event_rules:
-        module: third_party_rules.RoomAccessRules
-        config:
-            # List of domains (server names) that can't be invited to rooms if the
-            # "restricted" rule is set. Defaults to an empty list.
-            domains_forbidden_when_restricted: []
-
-            # Identity server to use when checking the HS an email address belongs to
-            # using the /info endpoint. Required.
-            id_server: "vector.im"
-
-            # Enable freezing a room when the last room admin leaves.
-            # Note that the departing admin must be a local user in order for this feature
-            # to work.
-            freeze_room_with_no_admin: false
-
     Don't forget to consider if you can invite users from your own domain.
     """
 
