@@ -25,7 +25,7 @@ Forbids any invite and membership update for users that belong to a server
 that is in the blacklist provided by the server's configuration
 (`domains_forbidden_when_restricted`). If the invite is a 3PID invite, queries
 a custom `/info` endpoint of the configured identity server to check if that email
-address would belong to a blacklisted server.
+address would belong to a blacklisted server, in which case the invite is denied.
 
 ### `unrestricted` preset
 
