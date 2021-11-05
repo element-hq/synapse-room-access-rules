@@ -105,7 +105,7 @@ directory. They can be ran with `tox -e tests`.
 ### Making a release
 
 ```
-git tag vX.Y
+git tag -s vX.Y
 python3 setup.py sdist
 twine upload dist/synapse-room-access-rules-X.Y.tar.gz
 git push origin vX.Y
