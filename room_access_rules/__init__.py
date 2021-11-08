@@ -336,7 +336,7 @@ class RoomAccessRules(object):
         self,
         event: EventBase,
         state_events: StateMap[EventBase],
-    ) -> Union[bool, dict]:
+    ) -> Tuple[bool, Optional[dict]]:
         """Checks the event's type and the current rule and calls the right function to
         determine whether the event can be allowed.
 
@@ -354,35 +354,41 @@ class RoomAccessRules(object):
         # the event is a state event.
         if event.is_state():
             if event.type == ACCESS_RULES_TYPE:
-                return await self._on_rules_change(event, state_events)
+                return await self._on_rules_change(event, state_events), None
 
             # We need to know the rule to apply when processing the event types below.
             rule = self._get_rule_from_state(state_events)
 
             if event.type == EventTypes.PowerLevels:
-                return self._is_power_level_content_allowed(
-                    event.content, rule, on_room_creation=False
+                return (
+                    self._is_power_level_content_allowed(
+                        event.content, rule, on_room_creation=False
+                    ),
+                    None
                 )
 
             if (
                 event.type == EventTypes.Member
                 or event.type == EventTypes.ThirdPartyInvite
             ):
-                return await self._on_membership_or_invite(event, rule, state_events)
+                return (
+                    await self._on_membership_or_invite(event, rule, state_events),
+                    None,
+                )
 
             if event.type == EventTypes.JoinRules:
-                return self._on_join_rule_change(event, rule)
+                return self._on_join_rule_change(event, rule), None
 
             if event.type == EventTypes.RoomAvatar:
-                return self._on_room_avatar_change(event, rule)
+                return self._on_room_avatar_change(event, rule), None
 
             if event.type == EventTypes.Name:
-                return self._on_room_name_change(event, rule)
+                return self._on_room_name_change(event, rule), None
 
             if event.type == EventTypes.Topic:
-                return self._on_room_topic_change(event, rule)
+                return self._on_room_topic_change(event, rule), None
 
-        return True
+        return True, None
 
     async def check_visibility_can_be_modified(
         self, room_id: str, state_events: StateMap[EventBase], new_visibility: str
