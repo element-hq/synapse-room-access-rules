@@ -20,18 +20,8 @@ from room_access_rules import RoomAccessRules
 
 
 class MockHttpClient:
-    _info_endpoint_responses = {
-        "allowed@example.com": {
-            "hs": "allowed.com",
-        },
-        "forbidden@example.com": {
-            "hs": "forbidden.com",
-        }
-    }
-
     async def get_json(self, uri, args):
-        address = args["address"]
-        return self._info_endpoint_responses.get(address, {})
+        return {"hs": args["address"].split('@')[1]}
 
 
 class MockPublicRoomListManager:
