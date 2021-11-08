@@ -12,8 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 from unittest.mock import Mock
 
+import attr
 from synapse.module_api import ModuleApi, UserID
 
 from room_access_rules import RoomAccessRules
@@ -32,9 +34,29 @@ class MockPublicRoomListManager:
 
 
 class MockRequester:
-
     def __init__(self, user_id: str):
         self.user = UserID.from_string(user_id)
+
+
+@attr.s(auto_attribs=True)
+class MockEvent:
+    """Mocks an event. Only exposes properties the module uses."""
+    sender: str
+    type: str
+    content: dict
+    room_id: str = "!someroom"
+    state_key: Optional[str] = None
+
+    def is_state(self):
+        """Checks if the event is a state event by checking if it has a state key."""
+        return self.state_key is not None
+
+    @property
+    def membership(self):
+        """Extracts the membership from the event. Should only be called on an event
+        that's a membership event, and will raise a KeyError otherwise.
+        """
+        return self.content["membership"]
 
 
 def create_module(config_override={}) -> RoomAccessRules:
