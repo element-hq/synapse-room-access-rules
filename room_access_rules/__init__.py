@@ -393,10 +393,7 @@ class RoomAccessRules(object):
     async def check_visibility_can_be_modified(
         self, room_id: str, state_events: StateMap[EventBase], new_visibility: str
     ) -> bool:
-        """Implements
-        synapse.events.ThirdPartyEventRules.check_visibility_can_be_modified
-
-        Determines whether a room can be published, or removed from, the public room
+        """Determines whether a room can be published, or removed from, the public room
         list. A room is published if its visibility is set to "public". Otherwise,
         its visibility is "private". A room with access rule other than "restricted"
         may not be published.
