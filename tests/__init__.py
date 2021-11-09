@@ -18,7 +18,9 @@ from unittest.mock import Mock
 import attr
 from synapse.module_api import ModuleApi, UserID
 
-from room_access_rules import RoomAccessRules
+from room_access_rules import RoomAccessRules, ACCESS_RULES_TYPE
+
+PUBLIC_ROOM_ID = "!public:example.com"
 
 
 class MockHttpClient:
@@ -27,10 +29,8 @@ class MockHttpClient:
 
 
 class MockPublicRoomListManager:
-    _public_room = "!public:example.com"
-
     async def room_is_in_public_room_list(self, room_id: str) -> bool:
-        return room_id == self._public_room
+        return room_id == PUBLIC_ROOM_ID
 
 
 class MockRequester:
@@ -57,6 +57,16 @@ class MockEvent:
         that's a membership event, and will raise a KeyError otherwise.
         """
         return self.content["membership"]
+
+
+def new_access_rules_event(sender: str, room_id: str, rule: str) -> MockEvent:
+    return MockEvent(
+        sender=sender,
+        type=ACCESS_RULES_TYPE,
+        state_key="",
+        content={"rule": rule},
+        room_id=room_id,
+    )
 
 
 def create_module(config_override={}) -> RoomAccessRules:
