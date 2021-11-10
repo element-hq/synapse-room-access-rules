@@ -15,7 +15,13 @@ from typing import Optional
 
 import aiounittest
 
-from room_access_rules import ACCESS_RULES_TYPE, AccessRules, EventTypes, Membership
+from room_access_rules import (
+    ACCESS_RULES_TYPE,
+    AccessRules,
+    EventTypes,
+    Membership,
+    JoinRules,
+)
 from tests import create_module, MockEvent, new_access_rules_event
 
 
@@ -624,6 +630,16 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
             event=forbidden_join, state_events=state_events,
         )
         self.assertTrue(allowed)
+
+    async def test_join_rules(self):
+        await self._test_allowed_except_direct(
+            MockEvent(
+                sender=self.room_creator,
+                type=EventTypes.JoinRules,
+                content={"join_rule": JoinRules.PUBLIC},
+                state_key="",
+            )
+        )
 
     def _new_membership_event(
         self,
