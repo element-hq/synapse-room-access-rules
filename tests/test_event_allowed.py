@@ -15,9 +15,14 @@ from typing import Optional
 
 import aiounittest
 
-from room_access_rules import ACCESS_RULES_TYPE, AccessRules, EventTypes, Membership, \
-    JoinRules
-from tests import create_module, MockEvent
+from room_access_rules import (
+    ACCESS_RULES_TYPE,
+    AccessRules,
+    EventTypes,
+    Membership,
+    JoinRules,
+)
+from tests import create_module, MockEvent, new_access_rules_event
 
 
 class SendEventTestCase(aiounittest.AsyncTestCase):
@@ -403,7 +408,7 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
         """
         # We can't change the rule from restricted to direct.
         allowed, _ = await self.module.check_event_allowed(
-            event=self._new_access_rules_event(
+            event=new_access_rules_event(
                 self.room_creator, self.restricted_room, AccessRules.DIRECT,
             ),
             state_events=self.restricted_room_state
@@ -412,7 +417,7 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
 
         # We can change the rule from restricted to unrestricted.
         allowed, _ = await self.module.check_event_allowed(
-            event=self._new_access_rules_event(
+            event=new_access_rules_event(
                 self.room_creator, self.restricted_room, AccessRules.UNRESTRICTED,
             ),
             state_events=self.restricted_room_state
@@ -421,7 +426,7 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
 
         # We can't change the rule from unrestricted to restricted.
         allowed, _ = await self.module.check_event_allowed(
-            event=self._new_access_rules_event(
+            event=new_access_rules_event(
                 self.room_creator, self.unrestricted_room, AccessRules.RESTRICTED,
             ),
             state_events=self.unrestricted_room_state
@@ -430,7 +435,7 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
 
         # We can't change the rule from unrestricted to direct.
         allowed, _ = await self.module.check_event_allowed(
-            event=self._new_access_rules_event(
+            event=new_access_rules_event(
                 self.room_creator, self.unrestricted_room, AccessRules.DIRECT,
             ),
             state_events=self.unrestricted_room_state
@@ -439,7 +444,7 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
 
         # We can't change the rule from direct to restricted.
         allowed, _ = await self.module.check_event_allowed(
-            event=self._new_access_rules_event(
+            event=new_access_rules_event(
                 self.room_creator, self.direct_room, AccessRules.RESTRICTED,
             ),
             state_events=self.direct_room_state
@@ -447,7 +452,7 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
         self.assertFalse(allowed)
 
         allowed, _ = await self.module.check_event_allowed(
-            event=self._new_access_rules_event(
+            event=new_access_rules_event(
                 self.room_creator, self.direct_room, AccessRules.UNRESTRICTED,
             ),
             state_events=self.direct_room_state
@@ -663,17 +668,6 @@ class SendEventTestCase(aiounittest.AsyncTestCase):
             type=EventTypes.ThirdPartyInvite,
             content=content if content is not None else {"displayname": "foo"},
             state_key=token,
-            room_id=room_id,
-        )
-
-    def _new_access_rules_event(
-            self, sender: str, room_id: str, rule: str,
-    ) -> MockEvent:
-        return MockEvent(
-            sender=sender,
-            type=ACCESS_RULES_TYPE,
-            state_key="",
-            content={"rule": rule},
             room_id=room_id,
         )
 
