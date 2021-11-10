@@ -14,7 +14,7 @@
 # limitations under the License.
 import email.utils
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import attr
 from synapse.events import EventBase
@@ -336,7 +336,7 @@ class RoomAccessRules(object):
         self,
         event: EventBase,
         state_events: StateMap[EventBase],
-    ) -> Tuple[bool, Optional[dict]]:
+    ) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """Checks the event's type and the current rule and calls the right function to
         determine whether the event can be allowed.
 
