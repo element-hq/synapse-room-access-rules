@@ -346,9 +346,9 @@ class RoomAccessRules(object):
                 State events in the room the event originated from.
 
         Returns:
-            True if the event should be allowed, False if it should be rejected. Also
-            always returns None as a second parameter since we don't replace event
-            contents here.
+            A 2-tuple (allowed, None). `allowed` is True if the event should be
+            allowed, False if it should be rejected. The second entry is always
+            None because this module doesn't replace event contents.
         """
         # We check the rules when altering the state of the room, so only go further if
         # the event is a state event.
