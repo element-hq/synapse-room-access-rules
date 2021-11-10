@@ -74,7 +74,9 @@ join a room unless they have been invited.
 
 ## Installation
 
-TODO
+```
+pip install synapse-room-access-rules
+```
 
 ## Config
 
