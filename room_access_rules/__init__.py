@@ -98,10 +98,10 @@ class RoomAccessRules(object):
     def __init__(
         self,
         config: RoomAccessRulesConfig,
-        module_api: ModuleApi,
+        api: ModuleApi,
     ):
         self.config = config
-        self.module_api = module_api
+        self.module_api = api
 
         self.module_api.register_third_party_rules_callbacks(
             check_event_allowed=self.check_event_allowed,
